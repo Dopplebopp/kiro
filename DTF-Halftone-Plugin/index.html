@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="UTF-8">
-    <title>DTF Halftone Pro</title>
+    <script src="index.js"></script>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -11,7 +10,7 @@
         <header id="panel-header">
             <h1>DTF Halftone Pro</h1>
             <div class="header-controls">
-                <button id="btn-reset-all" class="btn-icon" title="Reset All">&#8634;</button>
+                <sp-button id="btn-reset-all" variant="secondary" quiet title="Reset All">Reset</sp-button>
             </div>
         </header>
 
@@ -23,29 +22,16 @@
             </div>
             <div class="section-body" id="canvas-body">
                 <div class="info-grid">
-                    <div class="info-item">
-                        <label>Size:</label>
-                        <span id="info-size">--</span>
-                    </div>
-                    <div class="info-item">
-                        <label>Resolution:</label>
-                        <span id="info-resolution">--</span>
-                        <span id="dpi-warning" class="warning hidden">! Not 300 DPI</span>
-                    </div>
-                    <div class="info-item">
-                        <label>Color Mode:</label>
-                        <span id="info-color-mode">--</span>
-                    </div>
-                    <div class="info-item">
-                        <label>Bit Depth:</label>
-                        <span id="info-bit-depth">--</span>
-                    </div>
+                    <div class="info-item"><label>Size:</label><span id="info-size">--</span></div>
+                    <div class="info-item"><label>Resolution:</label><span id="info-resolution">--</span><span id="dpi-warning" class="warning hidden">! Not 300 DPI</span></div>
+                    <div class="info-item"><label>Color Mode:</label><span id="info-color-mode">--</span></div>
+                    <div class="info-item"><label>Bit Depth:</label><span id="info-bit-depth">--</span></div>
                 </div>
-                <button id="btn-refresh-canvas" class="btn-secondary">Refresh Info</button>
+                <sp-button id="btn-refresh-canvas" variant="secondary">Refresh Info</sp-button>
             </div>
         </section>
 
-        <!-- MODE TOGGLE (Live Preview) -->
+        <!-- LIVE MODE -->
         <section class="panel-section" id="section-mode">
             <div class="section-header" data-toggle="mode-body">
                 <span class="collapse-icon">&#9660;</span>
@@ -53,11 +39,8 @@
             </div>
             <div class="section-body" id="mode-body">
                 <div class="toggle-row">
-                    <label class="switch">
-                        <input type="checkbox" id="toggle-live-mode">
-                        <span class="slider-toggle"></span>
-                    </label>
-                    <span class="toggle-label">Real-time Preview</span>
+                    <input type="checkbox" id="toggle-live-mode">
+                    <label for="toggle-live-mode">Real-time Preview</label>
                 </div>
                 <p class="helper-text">When enabled, slider changes apply to the document in real-time.</p>
             </div>
@@ -83,8 +66,8 @@
                 <div class="color-wheel-container">
                     <canvas id="color-wheel" width="180" height="180"></canvas>
                 </div>
-                <button id="btn-add-shirt-layer" class="btn-primary">Add/Update Shirt Layer</button>
-                <button id="btn-remove-shirt-layer" class="btn-secondary">Remove Shirt Layer</button>
+                <sp-button id="btn-add-shirt-layer">Add/Update Shirt Layer</sp-button>
+                <sp-button id="btn-remove-shirt-layer" variant="secondary">Remove Shirt Layer</sp-button>
             </div>
         </section>
 
@@ -105,7 +88,7 @@
                     <input type="range" id="knockout-threshold" min="0" max="255" value="30">
                     <span class="slider-value" id="knockout-threshold-val">30</span>
                 </div>
-                <button id="btn-knockout" class="btn-primary">Knock Out Color</button>
+                <sp-button id="btn-knockout">Knock Out Color</sp-button>
             </div>
         </section>
 
@@ -131,7 +114,7 @@
                     <input type="range" id="curves-highlights" min="-100" max="100" value="0">
                     <span class="slider-value" id="curves-highlights-val">0</span>
                 </div>
-                <button id="btn-apply-curves" class="btn-primary">Apply Curves</button>
+                <sp-button id="btn-apply-curves">Apply Curves</sp-button>
             </div>
         </section>
 
@@ -162,7 +145,7 @@
                     <input type="range" id="levels-output-white" min="0" max="255" value="255">
                     <span class="slider-value" id="levels-output-white-val">255</span>
                 </div>
-                <button id="btn-apply-levels" class="btn-primary">Apply Levels</button>
+                <sp-button id="btn-apply-levels">Apply Levels</sp-button>
             </div>
         </section>
 
@@ -178,7 +161,7 @@
                     <input type="range" id="threshold-level" min="1" max="255" value="128">
                     <span class="slider-value" id="threshold-level-val">128</span>
                 </div>
-                <button id="btn-apply-threshold" class="btn-primary">Apply Threshold</button>
+                <sp-button id="btn-apply-threshold">Apply Threshold</sp-button>
             </div>
         </section>
 
@@ -190,7 +173,7 @@
             </div>
             <div class="section-body" id="grayscale-body">
                 <p class="helper-text">Convert image to Grayscale mode (required before Bitmap conversion).</p>
-                <button id="btn-convert-grayscale" class="btn-primary">Convert to Grayscale</button>
+                <sp-button id="btn-convert-grayscale">Convert to Grayscale</sp-button>
             </div>
         </section>
 
@@ -222,7 +205,7 @@
                         <option value="cross">Cross</option>
                     </select>
                 </div>
-                <button id="btn-apply-halftone" class="btn-primary">Convert to Bitmap Halftone</button>
+                <sp-button id="btn-apply-halftone">Convert to Bitmap Halftone</sp-button>
             </div>
         </section>
 
@@ -234,13 +217,10 @@
             </div>
             <div class="section-body" id="duplicate-body">
                 <div class="toggle-row">
-                    <label class="switch">
-                        <input type="checkbox" id="toggle-duplicate" checked>
-                        <span class="slider-toggle"></span>
-                    </label>
-                    <span class="toggle-label">Non-destructive (duplicate before process)</span>
+                    <input type="checkbox" id="toggle-duplicate" checked>
+                    <label for="toggle-duplicate">Non-destructive (duplicate before process)</label>
                 </div>
-                <button id="btn-duplicate-now" class="btn-secondary">Duplicate Active Layer Now</button>
+                <sp-button id="btn-duplicate-now" variant="secondary">Duplicate Active Layer Now</sp-button>
             </div>
         </section>
 
@@ -261,7 +241,7 @@
                     <label><input type="checkbox" id="pipe-grayscale" checked> Grayscale</label>
                     <label><input type="checkbox" id="pipe-halftone" checked> Bitmap/Halftone</label>
                 </div>
-                <button id="btn-run-pipeline" class="btn-primary btn-large">Run Full Pipeline</button>
+                <sp-button id="btn-run-pipeline" variant="cta">Run Full Pipeline</sp-button>
             </div>
         </section>
 
@@ -275,11 +255,9 @@
                 <div id="activity-log" class="log-container">
                     <div class="log-entry log-info"><span class="log-time">--:--:--</span> Ready.</div>
                 </div>
-                <button id="btn-clear-log" class="btn-secondary">Clear Log</button>
+                <sp-button id="btn-clear-log" variant="secondary">Clear Log</sp-button>
             </div>
         </section>
     </div>
-
-    <script src="index.js"></script>
 </body>
 </html>

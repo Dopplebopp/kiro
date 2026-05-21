@@ -1,33 +1,37 @@
 {
-    "manifestVersion": 5,
     "id": "com.dtf.halftone.pro",
     "name": "DTF Halftone Pro",
     "version": "1.0.0",
     "main": "index.html",
+    "manifestVersion": 4,
     "host": [
         {
             "app": "PS",
-            "minVersion": "24.0.0"
+            "minVersion": "23.0.0"
         }
     ],
     "entrypoints": [
         {
             "type": "panel",
             "id": "dtfHalftonePanel",
-            "label": {
-                "default": "DTF Halftone Pro"
-            },
             "minimumSize": {
-                "width": 340,
-                "height": 500
+                "width": 230,
+                "height": 400
+            },
+            "maximumSize": {
+                "width": 2000,
+                "height": 2000
             },
             "preferredDockedSize": {
                 "width": 380,
-                "height": 720
+                "height": 700
             },
             "preferredFloatingSize": {
                 "width": 380,
-                "height": 720
+                "height": 700
+            },
+            "label": {
+                "default": "DTF Halftone Pro"
             },
             "icons": [
                 {
@@ -35,8 +39,14 @@
                     "height": 23,
                     "path": "icons/icon-dark.png",
                     "scale": [1, 2],
-                    "theme": ["darkest", "dark", "medium", "light", "lightest"],
-                    "species": ["generic"]
+                    "theme": ["darkest", "dark", "medium"]
+                },
+                {
+                    "width": 23,
+                    "height": 23,
+                    "path": "icons/icon-light.png",
+                    "scale": [1, 2],
+                    "theme": ["lightest", "light"]
                 }
             ]
         }
@@ -47,7 +57,7 @@
             "height": 48,
             "path": "icons/plugin-icon.png",
             "scale": [1, 2],
-            "theme": ["darkest", "dark", "medium", "light", "lightest"],
+            "theme": ["darkest", "dark", "medium", "lightest", "light", "all"],
             "species": ["pluginList"]
         }
     ]
