@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ExtensionManifest Version="6.0" ExtensionBundleId="com.dtf.halftone.bundle"
+                   ExtensionBundleVersion="1.0.0"
+                   ExtensionBundleName="DTF Halftone Pro"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+    <ExtensionList>
+        <Extension Id="com.dtf.halftone.panel" Version="1.0.0"/>
+    </ExtensionList>
+
+    <ExecutionEnvironment>
+        <HostList>
+            <!-- Photoshop CC 2015 through CC 2024 -->
+            <Host Name="PHSP" Version="[16.0,99.9]"/>
+            <Host Name="PHXS" Version="[16.0,99.9]"/>
+        </HostList>
+        <LocaleList>
+            <Locale Code="All"/>
+        </LocaleList>
+        <RequiredRuntimeList>
+            <RequiredRuntime Name="CSXS" Version="6.0"/>
+        </RequiredRuntimeList>
+    </ExecutionEnvironment>
+
+    <DispatchInfoList>
+        <Extension Id="com.dtf.halftone.panel">
+            <DispatchInfo>
+                <Resources>
+                    <MainPath>./index.html</MainPath>
+                    <ScriptPath>./jsx/halftone.jsx</ScriptPath>
+                    <CEFCommandLine>
+                        <Parameter>--allow-file-access-from-files</Parameter>
+                        <Parameter>--enable-nodejs</Parameter>
+                    </CEFCommandLine>
+                </Resources>
+                <Lifecycle>
+                    <AutoVisible>true</AutoVisible>
+                </Lifecycle>
+                <UI>
+                    <Type>Panel</Type>
+                    <Menu>DTF Halftone Pro</Menu>
+                    <Geometry>
+                        <Size>
+                            <Height>720</Height>
+                            <Width>380</Width>
+                        </Size>
+                        <MinSize>
+                            <Height>600</Height>
+                            <Width>340</Width>
+                        </MinSize>
+                        <MaxSize>
+                            <Height>1200</Height>
+                            <Width>500</Width>
+                        </MaxSize>
+                    </Geometry>
+                    <Icons>
+                        <Icon Type="Normal">./icons/icon-light.png</Icon>
+                        <Icon Type="DarkNormal">./icons/icon-dark.png</Icon>
+                    </Icons>
+                </UI>
+            </DispatchInfo>
+        </Extension>
+    </DispatchInfoList>
+</ExtensionManifest>
