@@ -6,18 +6,17 @@
 </head>
 <body>
     <div id="panel-container">
-        <!-- HEADER -->
         <header id="panel-header">
             <h1>DTF Halftone Pro</h1>
             <div class="header-controls">
-                <sp-button id="btn-reset-all" variant="secondary" quiet title="Reset All">Reset</sp-button>
+                <sp-button id="btn-reset-all" variant="secondary" quiet>Reset</sp-button>
             </div>
         </header>
 
         <!-- CANVAS INSPECTOR -->
-        <section class="panel-section" id="section-canvas">
+        <section class="panel-section">
             <div class="section-header" data-toggle="canvas-body">
-                <span class="collapse-icon">&#9660;</span>
+                <span class="collapse-icon">&#x25BC;</span>
                 <h2>Canvas Inspector</h2>
             </div>
             <div class="section-body" id="canvas-body">
@@ -31,32 +30,18 @@
             </div>
         </section>
 
-        <!-- LIVE MODE -->
-        <section class="panel-section" id="section-mode">
-            <div class="section-header" data-toggle="mode-body">
-                <span class="collapse-icon">&#9660;</span>
-                <h2>Live Mode</h2>
-            </div>
-            <div class="section-body" id="mode-body">
-                <div class="toggle-row">
-                    <input type="checkbox" id="toggle-live-mode">
-                    <label for="toggle-live-mode">Real-time Preview</label>
-                </div>
-                <p class="helper-text">When enabled, slider changes apply to the document in real-time.</p>
-            </div>
-        </section>
-
-        <!-- SHIRT PREVIEW -->
-        <section class="panel-section" id="section-shirt">
+        <!-- SHIRT PREVIEW + COLOR PICKER -->
+        <section class="panel-section">
             <div class="section-header" data-toggle="shirt-body">
-                <span class="collapse-icon">&#9660;</span>
-                <h2>Shirt Preview</h2>
+                <span class="collapse-icon">&#x25BC;</span>
+                <h2>Shirt Preview &amp; Color</h2>
             </div>
             <div class="section-body" id="shirt-body">
                 <div class="color-picker-row">
-                    <label>Shirt Color:</label>
+                    <label>Color:</label>
                     <input type="color" id="shirt-color-picker" value="#000000">
                     <input type="text" id="shirt-color-hex" class="hex-input" value="#000000" maxlength="7">
+                    <sp-button id="btn-eyedropper" variant="secondary" quiet title="Pick color from document">&#x1F441;</sp-button>
                 </div>
                 <div class="slider-row">
                     <label>Brightness:</label>
@@ -72,14 +57,14 @@
         </section>
 
         <!-- COLOR KNOCKOUT -->
-        <section class="panel-section" id="section-knockout">
+        <section class="panel-section">
             <div class="section-header" data-toggle="knockout-body">
-                <span class="collapse-icon">&#9660;</span>
+                <span class="collapse-icon">&#x25BC;</span>
                 <h2>Color Knockout</h2>
             </div>
             <div class="section-body" id="knockout-body">
                 <div class="color-picker-row">
-                    <label>Target Color:</label>
+                    <label>Target:</label>
                     <input type="color" id="knockout-color" value="#FFFFFF">
                     <input type="text" id="knockout-color-hex" class="hex-input" value="#FFFFFF" maxlength="7">
                 </div>
@@ -92,13 +77,14 @@
             </div>
         </section>
 
-        <!-- CURVES -->
-        <section class="panel-section" id="section-curves">
+        <!-- CURVES (live adjustment layer) -->
+        <section class="panel-section">
             <div class="section-header" data-toggle="curves-body">
-                <span class="collapse-icon">&#9660;</span>
-                <h2>Curves</h2>
+                <span class="collapse-icon">&#x25BC;</span>
+                <h2>Curves (Live)</h2>
             </div>
             <div class="section-body" id="curves-body">
+                <p class="helper-text">Creates/updates a "DTF_Curves" adjustment layer in real-time.</p>
                 <div class="slider-row">
                     <label>Shadows:</label>
                     <input type="range" id="curves-shadows" min="-100" max="100" value="0">
@@ -118,13 +104,14 @@
             </div>
         </section>
 
-        <!-- LEVELS -->
-        <section class="panel-section" id="section-levels">
+        <!-- LEVELS (live adjustment layer) -->
+        <section class="panel-section">
             <div class="section-header" data-toggle="levels-body">
-                <span class="collapse-icon">&#9660;</span>
-                <h2>Levels</h2>
+                <span class="collapse-icon">&#x25BC;</span>
+                <h2>Levels (Live)</h2>
             </div>
             <div class="section-body" id="levels-body">
+                <p class="helper-text">Creates/updates a "DTF_Levels" adjustment layer in real-time.</p>
                 <div class="slider-row">
                     <label>Input Black:</label>
                     <input type="range" id="levels-input-black" min="0" max="255" value="0">
@@ -149,13 +136,14 @@
             </div>
         </section>
 
-        <!-- THRESHOLD -->
-        <section class="panel-section" id="section-threshold">
+        <!-- THRESHOLD (live adjustment layer) -->
+        <section class="panel-section">
             <div class="section-header" data-toggle="threshold-body">
-                <span class="collapse-icon">&#9660;</span>
-                <h2>Threshold</h2>
+                <span class="collapse-icon">&#x25BC;</span>
+                <h2>Threshold (Live)</h2>
             </div>
             <div class="section-body" id="threshold-body">
+                <p class="helper-text">Creates/updates a "DTF_Threshold" adjustment layer in real-time.</p>
                 <div class="slider-row">
                     <label>Level:</label>
                     <input type="range" id="threshold-level" min="1" max="255" value="128">
@@ -166,26 +154,26 @@
         </section>
 
         <!-- GRAYSCALE -->
-        <section class="panel-section" id="section-grayscale">
+        <section class="panel-section">
             <div class="section-header" data-toggle="grayscale-body">
-                <span class="collapse-icon">&#9660;</span>
+                <span class="collapse-icon">&#x25BC;</span>
                 <h2>Grayscale</h2>
             </div>
             <div class="section-body" id="grayscale-body">
-                <p class="helper-text">Convert image to Grayscale mode (required before Bitmap conversion).</p>
+                <p class="helper-text">Convert image to Grayscale mode (required before Bitmap).</p>
                 <sp-button id="btn-convert-grayscale">Convert to Grayscale</sp-button>
             </div>
         </section>
 
         <!-- BITMAP / HALFTONE -->
-        <section class="panel-section" id="section-halftone">
+        <section class="panel-section">
             <div class="section-header" data-toggle="halftone-body">
-                <span class="collapse-icon">&#9660;</span>
+                <span class="collapse-icon">&#x25BC;</span>
                 <h2>Bitmap / Halftone</h2>
             </div>
             <div class="section-body" id="halftone-body">
                 <div class="slider-row">
-                    <label>LPI Frequency:</label>
+                    <label>LPI:</label>
                     <input type="range" id="halftone-lpi" min="1" max="120" value="45">
                     <span class="slider-value" id="halftone-lpi-val">45</span>
                 </div>
@@ -210,9 +198,9 @@
         </section>
 
         <!-- DUPLICATE LAYER -->
-        <section class="panel-section" id="section-duplicate">
+        <section class="panel-section">
             <div class="section-header" data-toggle="duplicate-body">
-                <span class="collapse-icon">&#9660;</span>
+                <span class="collapse-icon">&#x25BC;</span>
                 <h2>Duplicate Layer</h2>
             </div>
             <div class="section-body" id="duplicate-body">
@@ -220,35 +208,35 @@
                     <input type="checkbox" id="toggle-duplicate" checked>
                     <label for="toggle-duplicate">Non-destructive (duplicate before process)</label>
                 </div>
-                <sp-button id="btn-duplicate-now" variant="secondary">Duplicate Active Layer Now</sp-button>
+                <sp-button id="btn-duplicate-now" variant="secondary">Duplicate Active Layer</sp-button>
             </div>
         </section>
 
         <!-- ONE-CLICK PROCESS -->
-        <section class="panel-section" id="section-oneclick">
+        <section class="panel-section">
             <div class="section-header" data-toggle="oneclick-body">
-                <span class="collapse-icon">&#9660;</span>
+                <span class="collapse-icon">&#x25BC;</span>
                 <h2>One-Click Process</h2>
             </div>
             <div class="section-body" id="oneclick-body">
-                <p class="helper-text">Runs the full DTF halftone pipeline in order:</p>
+                <p class="helper-text">Runs selected steps in order:</p>
                 <div class="pipeline-checklist">
-                    <label><input type="checkbox" id="pipe-duplicate" checked> Duplicate Layer</label>
-                    <label><input type="checkbox" id="pipe-knockout" checked> Color Knockout</label>
+                    <label><input type="checkbox" id="pipe-duplicate" checked> Duplicate</label>
+                    <label><input type="checkbox" id="pipe-knockout" checked> Knockout</label>
                     <label><input type="checkbox" id="pipe-curves" checked> Curves</label>
                     <label><input type="checkbox" id="pipe-levels" checked> Levels</label>
                     <label><input type="checkbox" id="pipe-threshold"> Threshold</label>
                     <label><input type="checkbox" id="pipe-grayscale" checked> Grayscale</label>
-                    <label><input type="checkbox" id="pipe-halftone" checked> Bitmap/Halftone</label>
+                    <label><input type="checkbox" id="pipe-halftone" checked> Halftone</label>
                 </div>
                 <sp-button id="btn-run-pipeline" variant="cta">Run Full Pipeline</sp-button>
             </div>
         </section>
 
         <!-- ACTIVITY LOG -->
-        <section class="panel-section" id="section-log">
+        <section class="panel-section">
             <div class="section-header" data-toggle="log-body">
-                <span class="collapse-icon">&#9660;</span>
+                <span class="collapse-icon">&#x25BC;</span>
                 <h2>Activity Log</h2>
             </div>
             <div class="section-body" id="log-body">
