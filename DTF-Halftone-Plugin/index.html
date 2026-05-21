@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>DTF Halftone Pro</title>
-    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <div id="panel-container">
@@ -25,20 +25,20 @@
                 <div class="info-grid">
                     <div class="info-item">
                         <label>Size:</label>
-                        <span id="info-size">—</span>
+                        <span id="info-size">--</span>
                     </div>
                     <div class="info-item">
                         <label>Resolution:</label>
-                        <span id="info-resolution">—</span>
-                        <span id="dpi-warning" class="warning hidden">⚠ Not 300 DPI</span>
+                        <span id="info-resolution">--</span>
+                        <span id="dpi-warning" class="warning hidden">! Not 300 DPI</span>
                     </div>
                     <div class="info-item">
                         <label>Color Mode:</label>
-                        <span id="info-color-mode">—</span>
+                        <span id="info-color-mode">--</span>
                     </div>
                     <div class="info-item">
                         <label>Bit Depth:</label>
-                        <span id="info-bit-depth">—</span>
+                        <span id="info-bit-depth">--</span>
                     </div>
                 </div>
                 <button id="btn-refresh-canvas" class="btn-secondary">Refresh Info</button>
@@ -81,7 +81,7 @@
                     <span class="slider-value" id="shirt-brightness-val">50</span>
                 </div>
                 <div class="color-wheel-container">
-                    <canvas id="color-wheel" width="200" height="200"></canvas>
+                    <canvas id="color-wheel" width="180" height="180"></canvas>
                 </div>
                 <button id="btn-add-shirt-layer" class="btn-primary">Add/Update Shirt Layer</button>
                 <button id="btn-remove-shirt-layer" class="btn-secondary">Remove Shirt Layer</button>
@@ -207,9 +207,9 @@
                     <span class="slider-value" id="halftone-lpi-val">45</span>
                 </div>
                 <div class="slider-row">
-                    <label>Angle (°):</label>
+                    <label>Angle:</label>
                     <input type="range" id="halftone-angle" min="0" max="360" value="45">
-                    <span class="slider-value" id="halftone-angle-val">45°</span>
+                    <span class="slider-value" id="halftone-angle-val">45</span>
                 </div>
                 <div class="select-row">
                     <label>Shape:</label>
@@ -251,8 +251,7 @@
                 <h2>One-Click Process</h2>
             </div>
             <div class="section-body" id="oneclick-body">
-                <p class="helper-text">Runs the full DTF halftone pipeline in order:<br>
-                    Duplicate → Knockout → Curves → Levels → Threshold → Grayscale → Bitmap/Halftone</p>
+                <p class="helper-text">Runs the full DTF halftone pipeline in order:</p>
                 <div class="pipeline-checklist">
                     <label><input type="checkbox" id="pipe-duplicate" checked> Duplicate Layer</label>
                     <label><input type="checkbox" id="pipe-knockout" checked> Color Knockout</label>
@@ -262,7 +261,7 @@
                     <label><input type="checkbox" id="pipe-grayscale" checked> Grayscale</label>
                     <label><input type="checkbox" id="pipe-halftone" checked> Bitmap/Halftone</label>
                 </div>
-                <button id="btn-run-pipeline" class="btn-primary btn-large">&#9654; Run Full Pipeline</button>
+                <button id="btn-run-pipeline" class="btn-primary btn-large">Run Full Pipeline</button>
             </div>
         </section>
 
@@ -281,8 +280,6 @@
         </section>
     </div>
 
-    <!-- SCRIPTS -->
-    <script src="lib/CSInterface.js"></script>
-    <script src="js/main.js"></script>
+    <script src="index.js"></script>
 </body>
 </html>

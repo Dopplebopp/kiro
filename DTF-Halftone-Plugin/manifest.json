@@ -1,0 +1,54 @@
+{
+    "manifestVersion": 5,
+    "id": "com.dtf.halftone.pro",
+    "name": "DTF Halftone Pro",
+    "version": "1.0.0",
+    "main": "index.html",
+    "host": [
+        {
+            "app": "PS",
+            "minVersion": "24.0.0"
+        }
+    ],
+    "entrypoints": [
+        {
+            "type": "panel",
+            "id": "dtfHalftonePanel",
+            "label": {
+                "default": "DTF Halftone Pro"
+            },
+            "minimumSize": {
+                "width": 340,
+                "height": 500
+            },
+            "preferredDockedSize": {
+                "width": 380,
+                "height": 720
+            },
+            "preferredFloatingSize": {
+                "width": 380,
+                "height": 720
+            },
+            "icons": [
+                {
+                    "width": 23,
+                    "height": 23,
+                    "path": "icons/icon-dark.png",
+                    "scale": [1, 2],
+                    "theme": ["darkest", "dark", "medium", "light", "lightest"],
+                    "species": ["generic"]
+                }
+            ]
+        }
+    ],
+    "icons": [
+        {
+            "width": 48,
+            "height": 48,
+            "path": "icons/plugin-icon.png",
+            "scale": [1, 2],
+            "theme": ["darkest", "dark", "medium", "light", "lightest"],
+            "species": ["pluginList"]
+        }
+    ]
+}
