@@ -6,184 +6,28 @@
 </head>
 <body>
     <div id="panel-container">
-        <header id="panel-header">
-            <h1>DTF Halftone Pro</h1>
-            <div class="header-controls">
-                <sp-button id="btn-reset-all" variant="secondary" quiet>Reset</sp-button>
+        <!-- MAIN VIEW (before Run DTPREP) -->
+        <div id="view-main">
+            <!-- Canvas Info -->
+            <div class="info-bar">
+                <span>Current 300 DPI Print Size: <span id="info-print-size">--</span></span>
             </div>
-        </header>
+            <div class="scale-row">
+                <label>Scale to:</label>
+                <input type="number" id="scale-width" value="10" min="1" max="100" step="0.5">
+                <span>x</span>
+                <input type="number" id="scale-height" value="15" min="1" max="100" step="0.5">
+                <span>in</span>
+            </div>
 
-        <!-- CANVAS INSPECTOR -->
-        <section class="panel-section">
-            <div class="section-header" data-toggle="canvas-body">
-                <span class="collapse-icon">&#x25BC;</span>
-                <h2>Canvas Inspector</h2>
-            </div>
-            <div class="section-body" id="canvas-body">
-                <div class="info-grid">
-                    <div class="info-item"><label>Size:</label><span id="info-size">--</span></div>
-                    <div class="info-item"><label>Resolution:</label><span id="info-resolution">--</span><span id="dpi-warning" class="warning hidden">! Not 300 DPI</span></div>
-                    <div class="info-item"><label>Color Mode:</label><span id="info-color-mode">--</span></div>
-                    <div class="info-item"><label>Bit Depth:</label><span id="info-bit-depth">--</span></div>
-                </div>
-                <sp-button id="btn-refresh-canvas" variant="secondary">Refresh Info</sp-button>
-            </div>
-        </section>
-
-        <!-- SHIRT PREVIEW + COLOR PICKER -->
-        <section class="panel-section">
-            <div class="section-header" data-toggle="shirt-body">
-                <span class="collapse-icon">&#x25BC;</span>
-                <h2>Shirt Preview &amp; Color</h2>
-            </div>
-            <div class="section-body" id="shirt-body">
-                <div class="color-picker-row">
-                    <label>Color:</label>
-                    <input type="color" id="shirt-color-picker" value="#000000">
-                    <input type="text" id="shirt-color-hex" class="hex-input" value="#000000" maxlength="7">
-                    <sp-button id="btn-eyedropper" variant="secondary" quiet title="Pick color from document">&#x1F441;</sp-button>
-                </div>
-                <div class="slider-row">
-                    <label>Brightness:</label>
-                    <input type="range" id="shirt-brightness" min="0" max="100" value="50">
-                    <span class="slider-value" id="shirt-brightness-val">50</span>
-                </div>
-                <div class="color-wheel-container">
-                    <canvas id="color-wheel" width="180" height="180"></canvas>
-                </div>
-                <sp-button id="btn-add-shirt-layer">Add/Update Shirt Layer</sp-button>
-                <sp-button id="btn-remove-shirt-layer" variant="secondary">Remove Shirt Layer</sp-button>
-            </div>
-        </section>
-
-        <!-- COLOR KNOCKOUT -->
-        <section class="panel-section">
-            <div class="section-header" data-toggle="knockout-body">
-                <span class="collapse-icon">&#x25BC;</span>
-                <h2>Color Knockout</h2>
-            </div>
-            <div class="section-body" id="knockout-body">
-                <div class="color-picker-row">
-                    <label>Target:</label>
-                    <input type="color" id="knockout-color" value="#FFFFFF">
-                    <input type="text" id="knockout-color-hex" class="hex-input" value="#FFFFFF" maxlength="7">
-                </div>
-                <div class="slider-row">
-                    <label>Threshold:</label>
-                    <input type="range" id="knockout-threshold" min="0" max="255" value="30">
-                    <span class="slider-value" id="knockout-threshold-val">30</span>
-                </div>
-                <sp-button id="btn-knockout">Knock Out Color</sp-button>
-            </div>
-        </section>
-
-        <!-- CURVES (live adjustment layer) -->
-        <section class="panel-section">
-            <div class="section-header" data-toggle="curves-body">
-                <span class="collapse-icon">&#x25BC;</span>
-                <h2>Curves (Live)</h2>
-            </div>
-            <div class="section-body" id="curves-body">
-                <p class="helper-text">Creates/updates a "DTF_Curves" adjustment layer in real-time.</p>
-                <div class="slider-row">
-                    <label>Shadows:</label>
-                    <input type="range" id="curves-shadows" min="-100" max="100" value="0">
-                    <span class="slider-value" id="curves-shadows-val">0</span>
-                </div>
-                <div class="slider-row">
-                    <label>Midtones:</label>
-                    <input type="range" id="curves-midtones" min="-100" max="100" value="0">
-                    <span class="slider-value" id="curves-midtones-val">0</span>
-                </div>
-                <div class="slider-row">
-                    <label>Highlights:</label>
-                    <input type="range" id="curves-highlights" min="-100" max="100" value="0">
-                    <span class="slider-value" id="curves-highlights-val">0</span>
-                </div>
-                <sp-button id="btn-apply-curves">Apply Curves</sp-button>
-            </div>
-        </section>
-
-        <!-- LEVELS (live adjustment layer) -->
-        <section class="panel-section">
-            <div class="section-header" data-toggle="levels-body">
-                <span class="collapse-icon">&#x25BC;</span>
-                <h2>Levels (Live)</h2>
-            </div>
-            <div class="section-body" id="levels-body">
-                <p class="helper-text">Creates/updates a "DTF_Levels" adjustment layer in real-time.</p>
-                <div class="slider-row">
-                    <label>Input Black:</label>
-                    <input type="range" id="levels-input-black" min="0" max="255" value="0">
-                    <span class="slider-value" id="levels-input-black-val">0</span>
-                </div>
-                <div class="slider-row">
-                    <label>Input White:</label>
-                    <input type="range" id="levels-input-white" min="0" max="255" value="255">
-                    <span class="slider-value" id="levels-input-white-val">255</span>
-                </div>
-                <div class="slider-row">
-                    <label>Output Black:</label>
-                    <input type="range" id="levels-output-black" min="0" max="255" value="0">
-                    <span class="slider-value" id="levels-output-black-val">0</span>
-                </div>
-                <div class="slider-row">
-                    <label>Output White:</label>
-                    <input type="range" id="levels-output-white" min="0" max="255" value="255">
-                    <span class="slider-value" id="levels-output-white-val">255</span>
-                </div>
-                <sp-button id="btn-apply-levels">Apply Levels</sp-button>
-            </div>
-        </section>
-
-        <!-- THRESHOLD (live adjustment layer) -->
-        <section class="panel-section">
-            <div class="section-header" data-toggle="threshold-body">
-                <span class="collapse-icon">&#x25BC;</span>
-                <h2>Threshold (Live)</h2>
-            </div>
-            <div class="section-body" id="threshold-body">
-                <p class="helper-text">Creates/updates a "DTF_Threshold" adjustment layer in real-time.</p>
-                <div class="slider-row">
-                    <label>Level:</label>
-                    <input type="range" id="threshold-level" min="1" max="255" value="128">
-                    <span class="slider-value" id="threshold-level-val">128</span>
-                </div>
-                <sp-button id="btn-apply-threshold">Apply Threshold</sp-button>
-            </div>
-        </section>
-
-        <!-- GRAYSCALE -->
-        <section class="panel-section">
-            <div class="section-header" data-toggle="grayscale-body">
-                <span class="collapse-icon">&#x25BC;</span>
-                <h2>Grayscale</h2>
-            </div>
-            <div class="section-body" id="grayscale-body">
-                <p class="helper-text">Convert image to Grayscale mode (required before Bitmap).</p>
-                <sp-button id="btn-convert-grayscale">Convert to Grayscale</sp-button>
-            </div>
-        </section>
-
-        <!-- BITMAP / HALFTONE -->
-        <section class="panel-section">
-            <div class="section-header" data-toggle="halftone-body">
-                <span class="collapse-icon">&#x25BC;</span>
-                <h2>Bitmap / Halftone</h2>
-            </div>
-            <div class="section-body" id="halftone-body">
-                <div class="slider-row">
-                    <label>LPI:</label>
-                    <input type="range" id="halftone-lpi" min="1" max="120" value="45">
-                    <span class="slider-value" id="halftone-lpi-val">45</span>
-                </div>
-                <div class="slider-row">
-                    <label>Angle:</label>
-                    <input type="range" id="halftone-angle" min="0" max="360" value="45">
-                    <span class="slider-value" id="halftone-angle-val">45</span>
-                </div>
-                <div class="select-row">
-                    <label>Shape:</label>
+            <!-- Halftone Section -->
+            <div class="section-box">
+                <div class="section-title">Halftone</div>
+                <div class="row-between">
+                    <label class="checkbox-row">
+                        <input type="checkbox" id="enable-halftone" checked>
+                        <span>Enable Halftone</span>
+                    </label>
                     <select id="halftone-shape">
                         <option value="round" selected>Round</option>
                         <option value="diamond">Diamond</option>
@@ -193,59 +37,137 @@
                         <option value="cross">Cross</option>
                     </select>
                 </div>
-                <sp-button id="btn-apply-halftone">Convert to Bitmap Halftone</sp-button>
-            </div>
-        </section>
-
-        <!-- DUPLICATE LAYER -->
-        <section class="panel-section">
-            <div class="section-header" data-toggle="duplicate-body">
-                <span class="collapse-icon">&#x25BC;</span>
-                <h2>Duplicate Layer</h2>
-            </div>
-            <div class="section-body" id="duplicate-body">
-                <div class="toggle-row">
-                    <input type="checkbox" id="toggle-duplicate" checked>
-                    <label for="toggle-duplicate">Non-destructive (duplicate before process)</label>
+                <div class="row-between">
+                    <div class="input-group">
+                        <label>Frequency / Inch</label>
+                        <input type="number" id="halftone-frequency" value="20" min="1" max="120">
+                    </div>
+                    <div class="input-group">
+                        <label>Angle</label>
+                        <input type="number" id="halftone-angle" value="33" min="0" max="360">
+                    </div>
                 </div>
-                <sp-button id="btn-duplicate-now" variant="secondary">Duplicate Active Layer</sp-button>
             </div>
-        </section>
 
-        <!-- ONE-CLICK PROCESS -->
-        <section class="panel-section">
-            <div class="section-header" data-toggle="oneclick-body">
-                <span class="collapse-icon">&#x25BC;</span>
-                <h2>One-Click Process</h2>
-            </div>
-            <div class="section-body" id="oneclick-body">
-                <p class="helper-text">Runs selected steps in order:</p>
-                <div class="pipeline-checklist">
-                    <label><input type="checkbox" id="pipe-duplicate" checked> Duplicate</label>
-                    <label><input type="checkbox" id="pipe-knockout" checked> Knockout</label>
-                    <label><input type="checkbox" id="pipe-curves" checked> Curves</label>
-                    <label><input type="checkbox" id="pipe-levels" checked> Levels</label>
-                    <label><input type="checkbox" id="pipe-threshold"> Threshold</label>
-                    <label><input type="checkbox" id="pipe-grayscale" checked> Grayscale</label>
-                    <label><input type="checkbox" id="pipe-halftone" checked> Halftone</label>
+            <!-- Color Knockout -->
+            <div class="row-between knockout-row">
+                <label class="checkbox-row">
+                    <input type="checkbox" id="enable-knockout" checked>
+                    <span>Enable Color Knockout</span>
+                </label>
+                <div class="color-swatch" id="swatch-knockout" title="Click to pick knockout color">
+                    <div class="swatch-inner" id="swatch-knockout-color" style="background:#000000;"></div>
                 </div>
-                <sp-button id="btn-run-pipeline" variant="cta">Run Full Pipeline</sp-button>
             </div>
-        </section>
 
-        <!-- ACTIVITY LOG -->
-        <section class="panel-section">
-            <div class="section-header" data-toggle="log-body">
-                <span class="collapse-icon">&#x25BC;</span>
-                <h2>Activity Log</h2>
-            </div>
-            <div class="section-body" id="log-body">
-                <div id="activity-log" class="log-container">
-                    <div class="log-entry log-info"><span class="log-time">--:--:--</span> Ready.</div>
+            <!-- Shirt/BG Preview Color -->
+            <div class="row-between shirt-row">
+                <span class="label-text">Set Shirt/BG Preview Color</span>
+                <div class="color-swatch" id="swatch-shirt" title="Click to pick shirt color">
+                    <div class="swatch-inner" id="swatch-shirt-color" style="background:#000000;"></div>
                 </div>
-                <sp-button id="btn-clear-log" variant="secondary">Clear Log</sp-button>
             </div>
-        </section>
+
+            <!-- Help & Settings -->
+            <div class="row-between bottom-row">
+                <sp-button id="btn-help" variant="secondary" quiet>?</sp-button>
+                <sp-button id="btn-run-dtprep" variant="cta">Run DTPREP</sp-button>
+                <sp-button id="btn-settings" variant="secondary" quiet>&#9881;</sp-button>
+            </div>
+        </div>
+
+        <!-- ADJUSTMENT VIEW (after Run DTPREP) -->
+        <div id="view-adjust" style="display:none;">
+            <!-- Buttons row -->
+            <div class="row-between" style="margin-bottom:10px;">
+                <sp-button id="btn-default-sliders" variant="secondary">Default Sliders</sp-button>
+                <sp-button id="btn-edit-halftones">Edit Halftones</sp-button>
+            </div>
+
+            <!-- Sliders -->
+            <div class="slider-group">
+                <div class="slider-row">
+                    <label>White Point</label>
+                    <input type="range" id="adj-white-point" min="200" max="255" value="255">
+                    <input type="number" id="adj-white-point-val" value="255" min="200" max="255">
+                </div>
+                <div class="slider-row">
+                    <label>Black Point</label>
+                    <input type="range" id="adj-black-point" min="0" max="55" value="0">
+                    <input type="number" id="adj-black-point-val" value="0" min="0" max="55">
+                </div>
+                <div class="slider-row">
+                    <label>Gray Point</label>
+                    <input type="range" id="adj-gray-point" min="0" max="10" value="2" step="0.1">
+                    <input type="number" id="adj-gray-point-val" value="2" min="0" max="10" step="0.1">
+                </div>
+                <div class="slider-row">
+                    <label>Boost Shadow Amount</label>
+                    <input type="range" id="adj-boost-shadow" min="0" max="100" value="0">
+                    <input type="number" id="adj-boost-shadow-val" value="0" min="0" max="100">
+                </div>
+            </div>
+
+            <!-- Preview Tabs -->
+            <div class="preview-tabs">
+                <button class="tab-btn active" data-mode="original">Original</button>
+                <button class="tab-btn" data-mode="shirt">Shirt</button>
+                <button class="tab-btn" data-mode="alpha">Alpha</button>
+                <button class="tab-btn" data-mode="mask">Mask</button>
+            </div>
+
+            <!-- Post Cleanup -->
+            <div class="post-cleanup">
+                <span>Post Cleanup</span>
+                <label><input type="radio" name="cleanup" value="none"> None</label>
+                <label><input type="radio" name="cleanup" value="standard" checked> Standard</label>
+                <label><input type="radio" name="cleanup" value="high"> High</label>
+            </div>
+
+            <!-- Cancel / Apply -->
+            <div class="row-between" style="margin-top:12px;">
+                <sp-button id="btn-cancel" variant="secondary">Cancel</sp-button>
+                <sp-button id="btn-apply" variant="cta">Apply</sp-button>
+            </div>
+        </div>
+
+        <!-- EDIT HALFTONE DIALOG (overlay) -->
+        <div id="dialog-halftone" style="display:none;">
+            <div class="dialog-box">
+                <div class="dialog-header">
+                    <span>Edit Halftone Settings</span>
+                    <button id="btn-close-dialog" class="close-btn">&times;</button>
+                </div>
+                <div class="section-box">
+                    <div class="section-title">Halftone</div>
+                    <div class="row-between">
+                        <label class="checkbox-row">
+                            <input type="checkbox" id="dialog-enable-halftone" checked>
+                            <span>Enable Halftone</span>
+                        </label>
+                        <select id="dialog-halftone-shape">
+                            <option value="round" selected>Round</option>
+                            <option value="diamond">Diamond</option>
+                            <option value="ellipse">Ellipse</option>
+                            <option value="line">Line</option>
+                            <option value="square">Square</option>
+                            <option value="cross">Cross</option>
+                        </select>
+                    </div>
+                    <div class="row-between">
+                        <div class="input-group">
+                            <label>Frequency / Inch</label>
+                            <input type="number" id="dialog-frequency" value="20" min="1" max="120">
+                        </div>
+                        <div class="input-group">
+                            <label>Angle</label>
+                            <input type="number" id="dialog-angle" value="33" min="0" max="360">
+                        </div>
+                    </div>
+                </div>
+                <sp-button id="btn-dialog-ok" variant="cta" style="margin-top:12px;width:100%;">OK</sp-button>
+            </div>
+        </div>
     </div>
 </body>
 </html>
