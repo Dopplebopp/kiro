@@ -45,20 +45,26 @@
                 </div>
             </div>
 
-            <!-- Color Knockout - VISIBLE color input -->
+            <!-- Color Knockout - clickable div swatch -->
             <div class="row-between knockout-row">
                 <label class="checkbox-row">
                     <input type="checkbox" id="enable-knockout" checked>
                     <span>Enable Color Knockout</span>
                 </label>
-                <input type="color" id="knockout-color-input" value="#FFFFFF" class="color-input-swatch">
+                <div class="color-swatch" id="swatch-knockout" title="Click to grab current foreground color">
+                    <div class="swatch-fill" id="swatch-knockout-fill"></div>
+                </div>
             </div>
 
-            <!-- Shirt/BG Color - VISIBLE color input -->
+            <!-- Shirt/BG Color - clickable div swatch -->
             <div class="row-between shirt-row">
                 <span class="label-text">Set Shirt/BG Preview Color</span>
-                <input type="color" id="shirt-color-input" value="#000000" class="color-input-swatch">
+                <div class="color-swatch" id="swatch-shirt" title="Click to grab current foreground color">
+                    <div class="swatch-fill" id="swatch-shirt-fill"></div>
+                </div>
             </div>
+
+            <p class="helper-text">Pick a color in PS toolbar first, then click the swatch to grab it.</p>
 
             <div class="bottom-row">
                 <sp-button id="btn-run-dtprep" variant="cta" style="width:100%;">Run DTPREP</sp-button>

@@ -46,15 +46,20 @@ html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg);
 select { background: var(--bg-input); color: var(--text); border: 1px solid var(--border); border-radius: var(--radius); padding: 5px 8px; font-size: 12px; cursor: pointer; min-width: 80px; }
 select:focus { border-color: var(--accent); outline: none; }
 
-/* Color input swatch (visible, clickable) */
-.color-input-swatch {
-    width: 40px; height: 30px; border: 2px solid var(--border); border-radius: var(--radius);
-    cursor: pointer; padding: 0; background: none;
-    -webkit-appearance: none; appearance: none;
+/* Color swatch (clickable div that grabs PS foreground color) */
+.color-swatch {
+    width: 40px; height: 28px; border: 2px solid var(--border); border-radius: var(--radius);
+    cursor: pointer; padding: 2px; transition: border-color 0.2s;
 }
-.color-input-swatch::-webkit-color-swatch-wrapper { padding: 2px; }
-.color-input-swatch::-webkit-color-swatch { border: none; border-radius: 2px; }
-.color-input-swatch:hover { border-color: var(--accent); }
+.color-swatch:hover { border-color: var(--accent); }
+.swatch-fill {
+    width: 100%; height: 100%; border-radius: 2px; background-color: #ffffff;
+}
+#swatch-shirt-fill { background-color: #000000; }
+#swatch-knockout-fill { background-color: #ffffff; }
+
+/* Helper text */
+.helper-text { font-size: 10px; color: var(--text-dim); margin: 4px 0 8px; text-align: center; }
 
 /* Knockout & shirt rows */
 .knockout-row, .shirt-row { padding: 8px 0; border-bottom: 1px solid var(--border); }
