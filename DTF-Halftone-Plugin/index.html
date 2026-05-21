@@ -68,11 +68,13 @@
                 </div>
             </div>
 
-            <!-- Help & Settings -->
+            <!-- Hidden color pickers (HTML native, works in UXP) -->
+            <input type="color" id="hidden-knockout-picker" value="#000000" style="position:absolute;opacity:0;width:0;height:0;">
+            <input type="color" id="hidden-shirt-picker" value="#000000" style="position:absolute;opacity:0;width:0;height:0;">
+
+            <!-- Run -->
             <div class="row-between bottom-row">
-                <sp-button id="btn-help" variant="secondary" quiet>?</sp-button>
-                <sp-button id="btn-run-dtprep" variant="cta">Run DTPREP</sp-button>
-                <sp-button id="btn-settings" variant="secondary" quiet>&#9881;</sp-button>
+                <sp-button id="btn-run-dtprep" variant="cta" style="width:100%;">Run DTPREP</sp-button>
             </div>
         </div>
 
