@@ -45,23 +45,19 @@
                 </div>
             </div>
 
-            <!-- Color Knockout - clickable div swatch -->
+            <!-- Shirt Color Mode -->
             <div class="row-between knockout-row">
                 <label class="checkbox-row">
                     <input type="checkbox" id="enable-knockout" checked>
-                    <span>Enable Color Knockout</span>
+                    <span>Enable Knockout</span>
                 </label>
-                <div class="color-swatch" id="swatch-knockout" title="Click to open color picker">
-                    <div class="swatch-fill" id="swatch-knockout-fill"></div>
-                </div>
-            </div>
-            <div class="slider-row" style="padding:4px 0;">
-                <label>Fuzziness:</label>
-                <input type="range" id="knockout-fuzziness" min="0" max="100" value="40">
-                <input type="number" id="knockout-fuzziness-val" value="40" min="0" max="100" style="width:40px;">
+                <select id="shirt-mode">
+                    <option value="light" selected>Light Shirt</option>
+                    <option value="dark">Dark Shirt</option>
+                </select>
             </div>
 
-            <!-- Shirt/BG Color - clickable div swatch -->
+            <!-- Shirt/BG Preview Color - clickable div swatch -->
             <div class="row-between shirt-row">
                 <span class="label-text">Set Shirt/BG Preview Color</span>
                 <div class="color-swatch" id="swatch-shirt" title="Click to open color picker">
@@ -69,7 +65,7 @@
                 </div>
             </div>
 
-            <p class="helper-text">Click a swatch to open the color picker.</p>
+            <p class="helper-text">Light shirt = knockout whites. Dark shirt = knockout blacks.</p>
 
             <div class="bottom-row">
                 <button id="btn-run-dtprep" class="btn-cta">Run DTPREP</button>
