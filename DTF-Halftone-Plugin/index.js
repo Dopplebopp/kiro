@@ -85,8 +85,8 @@ async function colorKnockoutOnActiveLayer(r, g, b, fuzz) {
 
         const newImg = await imaging.createImageDataFromBuffer(data, {
             width: w, height: h, components: comp,
-            colorSpace: pd.imageData.colorSpace,
-            chunky: pd.imageData.chunky,
+            colorSpace: pd.imageData.colorSpace || "RGB",
+            chunky: true,
             colorProfile: pd.imageData.colorProfile
         });
         await imaging.putPixels({
