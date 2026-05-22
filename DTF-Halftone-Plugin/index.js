@@ -1,12 +1,12 @@
-// DTF Halftone Pro v6 - Light/Dark shirt knockout via brightness
-// Run DTPREP: snapshot -> dup -> fill BG -> flatten -> grayscale -> levels -> halftone -> [invert] -> mask
+// DTF Halftone Pro v7 - Color knockout via imaging API + light/dark shirt + halftone in DTPREP
 const {app, action, core} = require("photoshop");
+const imaging = require("photoshop").imaging;
 
+let knockoutColor = {r: 255, g: 255, b: 255};
 let shirtColor = {r: 0, g: 0, b: 0};
 
 function rgbToHex(r,g,b) { return "#"+[r,g,b].map(c=>Math.round(c).toString(16).padStart(2,"0")).join(""); }
 
-// Opens PS native color picker, pre-loaded with starting color
 async function openColorPicker(startColor) {
     let color = null;
     await core.executeAsModal(async () => {
@@ -46,10 +46,77 @@ async function refreshCanvasInfo() {
     } catch(e) { document.getElementById("info-print-size").textContent = "No document open"; }
 }
 
+// Make pixels transparent on the active layer where they match target color within fuzziness
+// Uses imaging API for direct pixel manipulation - reliable and works regardless of colorRange bugs
+async function colorKnockoutOnActiveLayer(r, g, b, fuzz) {
+    try {
+        const layer = app.activeDocument.activeLayers[0];
+        if (!layer) { console.log("Knockout: no active layer"); return; }
+        const layerId = layer.id;
+        const docId = app.activeDocument.id;
+        const docW = app.activeDocument.width;
+        const docH = app.activeDocument.height;
+        const sourceBounds = { left: 0, top: 0, right: docW, bottom: docH };
+
+        const pd = await imaging.getPixels({
+            documentID: docId,
+            layerID: layerId,
+            sourceBounds: sourceBounds,
+            componentSize: 8,
+            applyAlpha: false
+        });
+
+        const comp = pd.imageData.components;
+        const w = pd.imageData.width;
+        const h = pd.imageData.height;
+        const data = await pd.imageData.getData();
+
+        if (comp < 4) {
+            console.log("Knockout: layer has no alpha channel (components="+comp+"), can't make transparent");
+            pd.imageData.dispose();
+            return;
+        }
+
+        // Manhattan distance threshold
+        const fuzzThresh = fuzz * 3;
+        let knocked = 0;
+        for (let i = 0; i < data.length; i += comp) {
+            const dr = Math.abs(data[i] - r);
+            const dg = Math.abs(data[i+1] - g);
+            const db = Math.abs(data[i+2] - b);
+            if ((dr + dg + db) <= fuzzThresh) {
+                data[i+3] = 0;
+                knocked++;
+            }
+        }
+        console.log("Knockout: "+knocked+" pixels made transparent (out of "+(data.length/comp)+")");
+
+        const newImg = await imaging.createImageDataFromBuffer(data, {
+            width: w, height: h,
+            components: comp,
+            colorSpace: pd.imageData.colorSpace,
+            chunky: pd.imageData.chunky,
+            colorProfile: pd.imageData.colorProfile
+        });
+
+        await imaging.putPixels({
+            documentID: docId,
+            layerID: layerId,
+            imageData: newImg,
+            targetBounds: sourceBounds
+        });
+
+        newImg.dispose();
+        pd.imageData.dispose();
+    } catch (e) {
+        console.error("Knockout error:", e.message, e);
+    }
+}
+
 // ============ CORE PIPELINE ============
-// Runs the full halftone pipeline. Used by both Run DTPREP and slider re-runs.
 async function runFullPipeline(isFirstRun) {
     const doKnockout = document.getElementById("enable-knockout").checked;
+    const fuzz = parseInt(document.getElementById("knockout-fuzziness").value) || 40;
     const isLight = document.getElementById("shirt-mode").value === "light";
     const doHalftone = document.getElementById("enable-halftone").checked;
     const freq = parseInt(document.getElementById("halftone-frequency").value) || 20;
@@ -59,87 +126,217 @@ async function runFullPipeline(isFirstRun) {
     const bPt = parseInt(document.getElementById("adj-black-point").value);
     const gamma = parseFloat(document.getElementById("adj-gray-point").value);
     const boost = parseInt(document.getElementById("adj-boost-shadow").value);
-
-    // For light shirt: fill transparency with WHITE so it gets knocked out as no-print
-    // For dark shirt: fill transparency with BLACK so it stays as no-print
     const bgFill = isLight ? "white" : "black";
 
-    await core.executeAsModal(async () => {
-        if (isFirstRun) {
-            // First run: take a snapshot for revert
-            console.log("snapshot");
-            await action.batchPlay([{_obj:"make",_target:[{_ref:"snapshotClass"}],from:{_ref:"historyState",_enum:"ordinal",_value:"targetEnum"},name:"DTF_Snapshot",using:{_enum:"historyState",_value:"fullDocument"},_options:{dialogOptions:"dontDisplay"}}], {});
-        } else {
-            // Subsequent runs: revert to snapshot first
+    await core.executeAsModal(async (ctx) => {
+        const susp = await ctx.hostControl.suspendHistory({
+            documentID: app.activeDocument.id,
+            name: isFirstRun ? "DTF Render" : "DTF Update"
+        });
+
+        try {
+            if (isFirstRun) {
+                // Clean up any old snapshot
+                try {
+                    await action.batchPlay([{
+                        _obj:"delete",
+                        _target:[{_ref:"snapshotClass",_name:"DTF_Snapshot"}],
+                        _options:{dialogOptions:"dontDisplay"}
+                    }], {});
+                } catch(e) {}
+                console.log("snapshot");
+                await action.batchPlay([{
+                    _obj:"make",
+                    _target:[{_ref:"snapshotClass"}],
+                    from:{_ref:"historyState",_enum:"ordinal",_value:"targetEnum"},
+                    name:"DTF_Snapshot",
+                    using:{_enum:"historyState",_value:"fullDocument"},
+                    _options:{dialogOptions:"dontDisplay"}
+                }], {});
+            } else {
+                console.log("revert to snapshot");
+                await action.batchPlay([{
+                    _obj:"select",
+                    _target:[{_ref:"snapshotClass",_name:"DTF_Snapshot"}],
+                    _options:{dialogOptions:"dontDisplay"}
+                }], {});
+            }
+
+            // Duplicate the active layer
+            console.log("duplicate");
+            await action.batchPlay([{
+                _obj:"duplicate",
+                _target:[{_ref:"layer",_enum:"ordinal",_value:"targetEnum"}],
+                name:"DTF_Working",
+                _options:{dialogOptions:"dontDisplay"}
+            }], {});
+
+            // Color knockout via imaging API (BEFORE flatten)
+            if (doKnockout) {
+                console.log("color knockout r="+knockoutColor.r+" g="+knockoutColor.g+" b="+knockoutColor.b+" fuzz="+fuzz);
+                await colorKnockoutOnActiveLayer(knockoutColor.r, knockoutColor.g, knockoutColor.b, fuzz);
+            }
+
+            // Create background fill layer below
+            console.log("create bg layer fill="+bgFill);
+            await action.batchPlay([{
+                _obj:"make",
+                _target:[{_ref:"layer"}],
+                _options:{dialogOptions:"dontDisplay"}
+            }], {});
+            // Move it to the bottom of the stack
+            await action.batchPlay([{
+                _obj:"move",
+                _target:[{_ref:"layer",_enum:"ordinal",_value:"targetEnum"}],
+                to:{_ref:"layer",_enum:"ordinal",_value:"back"},
+                _options:{dialogOptions:"dontDisplay"}
+            }], {});
+            // Fill it
+            await action.batchPlay([{
+                _obj:"fill",
+                using:{_enum:"fillContents",_value:bgFill},
+                opacity:{_unit:"percentUnit",_value:100},
+                mode:{_enum:"blendMode",_value:"normal"},
+                _options:{dialogOptions:"dontDisplay"}
+            }], {});
+
+            // Flatten
+            console.log("flatten");
+            await action.batchPlay([{
+                _obj:"flattenImage",
+                _options:{dialogOptions:"dontDisplay"}
+            }], {});
+
+            // Convert to grayscale (RGB -> Grayscale, suppress Discard Color dialog)
+            console.log("grayscale");
+            await action.batchPlay([{
+                _obj:"convertMode",
+                to:{_class:"grayscaleMode"},
+                merge:false,
+                _options:{dialogOptions:"dontDisplay"}
+            }], {});
+
+            // Apply levels
+            console.log("levels b="+bPt+" w="+wPt+" g="+gamma+" boost="+boost);
+            await action.batchPlay([{
+                _obj:"levels",
+                presetKind:{_enum:"presetKindType",_value:"presetKindCustom"},
+                adjustment:[{
+                    _obj:"levelsAdjustment",
+                    channel:{_ref:"channel",_enum:"channel",_value:"composite"},
+                    input:[bPt,wPt],
+                    output:[Math.min(255,boost),255],
+                    gamma:gamma
+                }],
+                _options:{dialogOptions:"dontDisplay"}
+            }], {});
+
+            // Halftone via bitmap conversion
+            if (doHalftone) {
+                const d = await action.batchPlay([{
+                    _obj:"get",
+                    _target:[{_ref:"document",_enum:"ordinal",_value:"targetEnum"}],
+                    _options:{dialogOptions:"dontDisplay"}
+                }], {});
+                const res = d[0].resolution._value || d[0].resolution || 300;
+                console.log("halftone f="+freq+" a="+ang+" s="+shp+" res="+res);
+                await action.batchPlay([{
+                    _obj:"convertMode",
+                    to:{_class:"bitmapMode"},
+                    resolution:{_unit:"densityUnit",_value:res},
+                    method:{_enum:"method",_value:"halftoneScreen"},
+                    frequency:{_unit:"densityUnit",_value:freq},
+                    angle:{_unit:"angleUnit",_value:ang},
+                    shape:{_enum:"halftoneShape",_value:shp},
+                    _options:{dialogOptions:"dontDisplay"}
+                }], {});
+
+                // Bitmap -> Grayscale - sizeRatio MUST be specified to skip the Grayscale dialog
+                console.log("bitmap to gray (sizeRatio:1)");
+                await action.batchPlay([{
+                    _obj:"convertMode",
+                    to:{_class:"grayscaleMode"},
+                    sizeRatio:1,
+                    _options:{dialogOptions:"dontDisplay"}
+                }], {});
+            }
+
+            // Invert if light shirt (so dark designs show as visible mask areas)
+            if (isLight) {
+                console.log("invert (light shirt)");
+                await action.batchPlay([{
+                    _obj:"invert",
+                    _options:{dialogOptions:"dontDisplay"}
+                }], {});
+            }
+
+            // Select all + copy the halftone
+            console.log("select all + copy");
+            await action.batchPlay([{
+                _obj:"set",
+                _target:[{_ref:"channel",_property:"selection"}],
+                to:{_enum:"ordinal",_value:"allEnum"},
+                _options:{dialogOptions:"dontDisplay"}
+            }], {});
+            await action.batchPlay([{
+                _obj:"copyEvent",
+                _options:{dialogOptions:"dontDisplay"}
+            }], {});
+
+            // Revert to snapshot to get back original artwork
             console.log("revert to snapshot");
-            await action.batchPlay([{_obj:"select",_target:[{_ref:"snapshotClass",_name:"DTF_Snapshot"}],_options:{dialogOptions:"dontDisplay"}}], {});
+            await action.batchPlay([{
+                _obj:"select",
+                _target:[{_ref:"snapshotClass",_name:"DTF_Snapshot"}],
+                _options:{dialogOptions:"dontDisplay"}
+            }], {});
+
+            // Add layer mask (revealAll = white mask)
+            console.log("add mask");
+            try {
+                await action.batchPlay([{
+                    _obj:"make",
+                    new:{_class:"channel"},
+                    at:{_ref:"channel",_enum:"channel",_value:"mask"},
+                    using:{_enum:"userMaskEnabled",_value:"revealAll"},
+                    _options:{dialogOptions:"dontDisplay"}
+                }], {});
+            } catch(e) {
+                console.log("mask exists or make failed, continuing:", e.message);
+            }
+
+            // Activate the mask channel for pasting
+            console.log("activate mask channel");
+            try {
+                await action.batchPlay([{
+                    _obj:"set",
+                    _target:[{_ref:"channel",_enum:"ordinal",_value:"targetEnum"}],
+                    to:{_ref:"channel",_enum:"channel",_value:"mask"},
+                    _options:{dialogOptions:"dontDisplay"}
+                }], {});
+            } catch(e) { console.log("activate mask failed:", e.message); }
+
+            // Paste halftone into mask
+            console.log("paste");
+            await action.batchPlay([{
+                _obj:"paste",
+                antiAlias:{_enum:"antiAliasType",_value:"none"},
+                as:{_class:"pixel"},
+                _options:{dialogOptions:"dontDisplay"}
+            }], {});
+
+            // Deselect
+            await action.batchPlay([{
+                _obj:"set",
+                _target:[{_ref:"channel",_property:"selection"}],
+                to:{_enum:"ordinal",_value:"none"},
+                _options:{dialogOptions:"dontDisplay"}
+            }], {});
+
+            console.log("=== PIPELINE DONE ===");
+        } finally {
+            await ctx.hostControl.resumeHistory(susp);
         }
-
-        // Duplicate the active layer so we work on a copy
-        console.log("duplicate");
-        await action.batchPlay([{_obj:"duplicate",_target:[{_ref:"layer",_enum:"ordinal",_value:"targetEnum"}],name:"DTF_Working",_options:{dialogOptions:"dontDisplay"}}], {});
-
-        // Create a background layer below filled with bgFill color
-        console.log("create bg layer fill="+bgFill);
-        await action.batchPlay([
-            {_obj:"make",_target:[{_ref:"layer"}],_options:{dialogOptions:"dontDisplay"}},
-            {_obj:"move",_target:[{_ref:"layer",_enum:"ordinal",_value:"targetEnum"}],to:{_ref:"layer",_enum:"ordinal",_value:"back"},_options:{dialogOptions:"dontDisplay"}},
-            {_obj:"fill",using:{_enum:"fillContents",_value:bgFill},opacity:{_unit:"percentUnit",_value:100},mode:{_enum:"blendMode",_value:"normal"},_options:{dialogOptions:"dontDisplay"}}
-        ], {});
-
-        // Flatten everything
-        console.log("flatten");
-        await action.batchPlay([{_obj:"flattenImage",_options:{dialogOptions:"dontDisplay"}}], {});
-
-        // Convert to grayscale
-        console.log("grayscale");
-        await action.batchPlay([{_obj:"convertMode",to:{_class:"grayscaleMode"},_options:{dialogOptions:"dontDisplay"}}], {});
-
-        // Apply levels
-        console.log("levels b="+bPt+" w="+wPt+" g="+gamma+" boost="+boost);
-        await action.batchPlay([{_obj:"levels",presetKind:{_enum:"presetKindType",_value:"presetKindCustom"},adjustment:[{_obj:"levelsAdjustment",channel:{_ref:"channel",_enum:"channel",_value:"composite"},input:[bPt,wPt],output:[Math.min(255,boost),255],gamma:gamma}],_options:{dialogOptions:"dontDisplay"}}], {});
-
-        // Halftone via bitmap conversion
-        if (doHalftone) {
-            const d = await action.batchPlay([{_obj:"get",_target:[{_ref:"document",_enum:"ordinal",_value:"targetEnum"}],_options:{dialogOptions:"dontDisplay"}}], {});
-            const res = d[0].resolution._value || d[0].resolution || 300;
-            console.log("halftone f="+freq+" a="+ang+" s="+shp+" res="+res);
-            await action.batchPlay([{_obj:"convertMode",to:{_class:"bitmapMode"},resolution:{_unit:"densityUnit",_value:res},method:{_enum:"method",_value:"halftoneScreen"},frequency:{_unit:"densityUnit",_value:freq},angle:{_unit:"angleUnit",_value:ang},shape:{_enum:"halftoneShape",_value:shp},_options:{dialogOptions:"dontDisplay"}}], {});
-            // Back to grayscale so we can copy
-            await action.batchPlay([{_obj:"convertMode",to:{_class:"grayscaleMode"},_options:{dialogOptions:"dontDisplay"}}], {});
-        }
-
-        // For light shirt, INVERT the halftone: dark areas of original become white in mask = visible
-        // For dark shirt, no invert: bright areas of original become white in mask = visible
-        if (doKnockout && isLight) {
-            console.log("invert (light shirt)");
-            await action.batchPlay([{_obj:"invert",_options:{dialogOptions:"dontDisplay"}}], {});
-        }
-
-        // Select all and copy the halftone
-        console.log("select all + copy");
-        await action.batchPlay([{_obj:"set",_target:[{_ref:"channel",_property:"selection"}],to:{_enum:"ordinal",_value:"allEnum"},_options:{dialogOptions:"dontDisplay"}}], {});
-        await action.batchPlay([{_obj:"copyEvent",_options:{dialogOptions:"dontDisplay"}}], {});
-
-        // Revert to snapshot to get back the original artwork
-        console.log("revert");
-        await action.batchPlay([{_obj:"select",_target:[{_ref:"snapshotClass",_name:"DTF_Snapshot"}],_options:{dialogOptions:"dontDisplay"}}], {});
-
-        // Add a layer mask
-        console.log("add mask");
-        await action.batchPlay([{_obj:"make",new:{_class:"channel"},at:{_ref:"channel",_enum:"channel",_value:"mask"},using:{_enum:"userMaskEnabled",_value:"revealAll"},_options:{dialogOptions:"dontDisplay"}}], {});
-
-        // Activate the mask channel
-        await action.batchPlay([{_obj:"set",_target:[{_ref:"channel",_enum:"ordinal",_value:"targetEnum"}],to:{_ref:"channel",_enum:"channel",_value:"mask"},_options:{dialogOptions:"dontDisplay"}}], {});
-
-        // Paste the halftone into the mask
-        console.log("paste into mask");
-        await action.batchPlay([{_obj:"paste",antiAlias:{_enum:"antiAliasType",_value:"none"},as:{_class:"pixel"},_options:{dialogOptions:"dontDisplay"}}], {});
-
-        // Deselect and re-select the layer (not the mask) so user can keep working
-        await action.batchPlay([{_obj:"set",_target:[{_ref:"channel",_property:"selection"}],to:{_enum:"ordinal",_value:"none"},_options:{dialogOptions:"dontDisplay"}}], {});
-
-        console.log("=== PIPELINE DONE ===");
     }, {commandName: isFirstRun ? "DTPREP" : "Update Halftone"});
 }
 
@@ -149,12 +346,12 @@ async function runDTPrep() {
         await runFullPipeline(true);
         document.getElementById("view-main").style.display = "none";
         document.getElementById("view-adjust").style.display = "block";
-    } catch(e) { console.error("DTPREP ERROR:", e.message); }
+    } catch(e) { console.error("DTPREP ERROR:", e.message, e); }
 }
 
 async function updateLevels() {
     try { await runFullPipeline(false); }
-    catch(e) { console.error("Update err:", e.message); }
+    catch(e) { console.error("Update err:", e.message, e); }
 }
 
 async function applyDTPrep() {
@@ -168,7 +365,11 @@ async function cancelDTPrep() {
     console.log("=== CANCEL ===");
     try {
         await core.executeAsModal(async () => {
-            await action.batchPlay([{_obj:"select",_target:[{_ref:"snapshotClass",_name:"DTF_Snapshot"}],_options:{dialogOptions:"dontDisplay"}}], {});
+            await action.batchPlay([{
+                _obj:"select",
+                _target:[{_ref:"snapshotClass",_name:"DTF_Snapshot"}],
+                _options:{dialogOptions:"dontDisplay"}
+            }], {});
         }, {commandName:"Cancel"});
     } catch(e) { console.error("Cancel err:", e.message); }
     document.getElementById("view-adjust").style.display = "none";
@@ -188,10 +389,18 @@ function closeHalftoneDialog() { document.getElementById("enable-halftone").chec
 
 let debounceTimer = null;
 document.addEventListener("DOMContentLoaded", function() {
-    console.log("=== DTF v6 LOADED ===");
+    console.log("=== DTF v7 LOADED ===");
     refreshCanvasInfo();
 
-    // Shirt preview color swatch
+    // Knockout color swatch
+    document.getElementById("swatch-knockout").addEventListener("click", async ()=>{
+        const c = await openColorPicker(knockoutColor);
+        if(c){ knockoutColor=c; document.getElementById("swatch-knockout-fill").style.backgroundColor=rgbToHex(c.r,c.g,c.b); }
+    });
+    // Initial knockout swatch color
+    document.getElementById("swatch-knockout-fill").style.backgroundColor=rgbToHex(knockoutColor.r,knockoutColor.g,knockoutColor.b);
+
+    // Shirt preview swatch
     document.getElementById("swatch-shirt").addEventListener("click", async ()=>{
         const c = await openColorPicker(shirtColor);
         if(c){ shirtColor=c; document.getElementById("swatch-shirt-fill").style.backgroundColor=rgbToHex(c.r,c.g,c.b); }
@@ -209,7 +418,7 @@ document.addEventListener("DOMContentLoaded", function() {
     // Sliders trigger live re-run
     [["adj-white-point","adj-white-point-val"],["adj-black-point","adj-black-point-val"],["adj-gray-point","adj-gray-point-val"],["adj-boost-shadow","adj-boost-shadow-val"]].forEach(p=>{
         const r=document.getElementById(p[0]),n=document.getElementById(p[1]);
-        r.addEventListener("input",()=>{n.value=r.value; if(debounceTimer)clearTimeout(debounceTimer); debounceTimer=setTimeout(updateLevels,200);});
+        r.addEventListener("input",()=>{n.value=r.value; if(debounceTimer)clearTimeout(debounceTimer); debounceTimer=setTimeout(updateLevels,250);});
         r.addEventListener("mouseup",()=>{ if(debounceTimer)clearTimeout(debounceTimer); updateLevels(); });
         n.addEventListener("change",()=>{r.value=n.value; updateLevels();});
     });
@@ -217,4 +426,10 @@ document.addEventListener("DOMContentLoaded", function() {
     // Shirt mode change triggers re-run
     document.getElementById("shirt-mode").addEventListener("change", ()=>{ updateLevels(); });
     document.getElementById("enable-knockout").addEventListener("change", ()=>{ updateLevels(); });
+
+    // Fuzziness slider sync (and trigger re-run on change)
+    const fuzzR=document.getElementById("knockout-fuzziness"), fuzzN=document.getElementById("knockout-fuzziness-val");
+    fuzzR.addEventListener("input",()=>{fuzzN.value=fuzzR.value;});
+    fuzzR.addEventListener("mouseup",()=>{ updateLevels(); });
+    fuzzN.addEventListener("change",()=>{ fuzzR.value=fuzzN.value; updateLevels(); });
 });

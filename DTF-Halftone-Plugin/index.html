@@ -47,17 +47,30 @@
 
             <!-- Shirt Color Mode -->
             <div class="row-between knockout-row">
-                <label class="checkbox-row">
-                    <input type="checkbox" id="enable-knockout" checked>
-                    <span>Enable Knockout</span>
-                </label>
+                <span class="label-text">Shirt Mode</span>
                 <select id="shirt-mode">
                     <option value="light" selected>Light Shirt</option>
                     <option value="dark">Dark Shirt</option>
                 </select>
             </div>
 
-            <!-- Shirt/BG Preview Color - clickable div swatch -->
+            <!-- Color Knockout -->
+            <div class="row-between knockout-row">
+                <label class="checkbox-row">
+                    <input type="checkbox" id="enable-knockout">
+                    <span>Color Knockout</span>
+                </label>
+                <div class="color-swatch" id="swatch-knockout" title="Click to pick color to knockout">
+                    <div class="swatch-fill" id="swatch-knockout-fill"></div>
+                </div>
+            </div>
+            <div class="slider-row" style="padding:4px 0;">
+                <label>Fuzziness:</label>
+                <input type="range" id="knockout-fuzziness" min="0" max="150" value="40">
+                <input type="number" id="knockout-fuzziness-val" value="40" min="0" max="150" style="width:40px;">
+            </div>
+
+            <!-- Shirt/BG Preview Color -->
             <div class="row-between shirt-row">
                 <span class="label-text">Set Shirt/BG Preview Color</span>
                 <div class="color-swatch" id="swatch-shirt" title="Click to open color picker">
@@ -65,7 +78,7 @@
                 </div>
             </div>
 
-            <p class="helper-text">Light shirt = knockout whites. Dark shirt = knockout blacks.</p>
+            <p class="helper-text">Pick a knockout color to remove specific colors from the artwork.</p>
 
             <div class="bottom-row">
                 <button id="btn-run-dtprep" class="btn-cta">Run DTPREP</button>
