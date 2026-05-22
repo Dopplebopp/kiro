@@ -98,42 +98,61 @@ async function colorKnockoutOnActiveLayer(r, g, b, fuzz) {
     } catch (e) { console.error("Knockout error:", e.message, e); }
 }
 
-// Cleans up preview-mode artifacts (DTF_ShirtBG layer, channel selection, mask state)
+// Find a layer by name using DOM (returns null if not found)
+function findLayerByName(name) {
+    const doc = app.activeDocument;
+    if (!doc) return null;
+    for (const layer of doc.layers) {
+        if (layer.name === name) return layer;
+    }
+    return null;
+}
+
+// Cleans up preview-mode artifacts safely - checks existence before operating
 async function cleanupPreviewArtifacts() {
-    try {
-        await action.batchPlay([{
-            _obj:"delete",
-            _target:[{_ref:"layer",_name:"DTF_ShirtBG"}],
-            _options:{dialogOptions:"dontDisplay"}
-        }], {});
-    } catch(e) {}
-    try {
-        await action.batchPlay([{
-            _obj:"select",
-            _target:[{_ref:"channel",_enum:"channel",_value:"RGB"}],
-            makeVisible: false,
-            _options:{dialogOptions:"dontDisplay"}
-        }], {});
-    } catch(e) {}
+    // 1. Delete DTF_ShirtBG if it exists (DOM check first, no error spam)
+    const shirtBg = findLayerByName("DTF_ShirtBG");
+    if (shirtBg) {
+        try { await shirtBg.delete(); } catch(e) { console.log("delete shirtBG:", e.message); }
+    }
+
+    // 2. Find and select the DTF_Working layer
+    const workingLayer = findLayerByName("DTF_Working");
+    if (!workingLayer) return; // Nothing more to do
+
     try {
         await action.batchPlay([{
             _obj:"select",
-            _target:[{_ref:"layer",_name:"DTF_Working"}],
+            _target:[{_ref:"layer",_id:workingLayer.id}],
             makeVisible: false,
             _options:{dialogOptions:"dontDisplay"}
         }], {});
-    } catch(e) {}
+    } catch(e) { console.log("select working:", e.message); }
+
+    // 3. Switch back to composite channel view (covers RGB or Grayscale modes)
+    const docMode = app.activeDocument.mode;
+    const compositeChannel = (docMode === "Grayscale") ? "gray" : "RGB";
+    try {
+        await action.batchPlay([{
+            _obj:"select",
+            _target:[{_ref:"channel",_enum:"channel",_value:compositeChannel}],
+            makeVisible: false,
+            _options:{dialogOptions:"dontDisplay"}
+        }], {});
+    } catch(e) { console.log("select channel:", e.message); }
+
+    // 4. Re-enable mask (in case Original mode disabled it)
     try {
         await action.batchPlay([{
             _obj:"set",
             _target:[
                 {_ref:"property",_property:"userMaskEnabled"},
-                {_ref:"layer",_enum:"ordinal",_value:"targetEnum"}
+                {_ref:"layer",_id:workingLayer.id}
             ],
             to: true,
             _options:{dialogOptions:"dontDisplay"}
         }], {});
-    } catch(e) {}
+    } catch(e) { console.log("enable mask:", e.message); }
 }
 
 // ============ CORE PIPELINE ============
@@ -247,65 +266,95 @@ async function applyPreviewMode(mode) {
     currentPreviewMode = mode;
     try {
         await core.executeAsModal(async () => {
+            // Always clean up preview artifacts and reset to a known state first
             await cleanupPreviewArtifacts();
+
+            const workingLayer = findLayerByName("DTF_Working");
+            if (!workingLayer) {
+                console.log("Preview: no DTF_Working layer (run DTPREP first)");
+                return;
+            }
 
             if (mode === "original") {
                 console.log("preview: original (mask disabled)");
-                await action.batchPlay([{
-                    _obj:"set",
-                    _target:[
-                        {_ref:"property",_property:"userMaskEnabled"},
-                        {_ref:"layer",_enum:"ordinal",_value:"targetEnum"}
-                    ],
-                    to: false,
-                    _options:{dialogOptions:"dontDisplay"}
-                }], {});
+                try {
+                    await action.batchPlay([{
+                        _obj:"set",
+                        _target:[
+                            {_ref:"property",_property:"userMaskEnabled"},
+                            {_ref:"layer",_id:workingLayer.id}
+                        ],
+                        to: false,
+                        _options:{dialogOptions:"dontDisplay"}
+                    }], {});
+                } catch(e) { console.log("disable mask:", e.message); }
             } else if (mode === "shirt") {
-                console.log("preview: shirt (BG color="+shirtColor.r+","+shirtColor.g+","+shirtColor.b+")");
-                await action.batchPlay([{_obj:"make",_target:[{_ref:"layer"}],_options:{dialogOptions:"dontDisplay"}}], {});
-                await action.batchPlay([{
-                    _obj:"set",
-                    _target:[{_ref:"layer",_enum:"ordinal",_value:"targetEnum"}],
-                    to:{_obj:"layer",name:"DTF_ShirtBG"},
-                    _options:{dialogOptions:"dontDisplay"}
-                }], {});
-                await action.batchPlay([{
-                    _obj:"move",
-                    _target:[{_ref:"layer",_enum:"ordinal",_value:"targetEnum"}],
-                    to:{_ref:"layer",_enum:"ordinal",_value:"back"},
-                    _options:{dialogOptions:"dontDisplay"}
-                }], {});
-                await action.batchPlay([{
-                    _obj:"set",
-                    _target:[{_ref:"color",_property:"foregroundColor"}],
-                    to:{_obj:"RGBColor",red:shirtColor.r,grain:shirtColor.g,blue:shirtColor.b},
-                    source:"photoshopPicker",
-                    _options:{dialogOptions:"dontDisplay"}
-                }], {});
-                await action.batchPlay([{
-                    _obj:"fill",
-                    using:{_enum:"fillContents",_value:"foregroundColor"},
-                    opacity:{_unit:"percentUnit",_value:100},
-                    mode:{_enum:"blendMode",_value:"normal"},
-                    _options:{dialogOptions:"dontDisplay"}
-                }], {});
-                await action.batchPlay([{
-                    _obj:"select",
-                    _target:[{_ref:"layer",_name:"DTF_Working"}],
-                    makeVisible: false,
-                    _options:{dialogOptions:"dontDisplay"}
-                }], {});
+                console.log("preview: shirt (BG="+shirtColor.r+","+shirtColor.g+","+shirtColor.b+")");
+                // Make a new layer (becomes the active layer)
+                try {
+                    await action.batchPlay([{_obj:"make",_target:[{_ref:"layer"}],_options:{dialogOptions:"dontDisplay"}}], {});
+                } catch(e) { console.log("make BG layer:", e.message); return; }
+
+                // Rename to DTF_ShirtBG
+                try {
+                    await action.batchPlay([{
+                        _obj:"set",
+                        _target:[{_ref:"layer",_enum:"ordinal",_value:"targetEnum"}],
+                        to:{_obj:"layer",name:"DTF_ShirtBG"},
+                        _options:{dialogOptions:"dontDisplay"}
+                    }], {});
+                } catch(e) { console.log("rename BG:", e.message); }
+
+                // Move to bottom
+                try {
+                    await action.batchPlay([{
+                        _obj:"move",
+                        _target:[{_ref:"layer",_enum:"ordinal",_value:"targetEnum"}],
+                        to:{_ref:"layer",_enum:"ordinal",_value:"back"},
+                        _options:{dialogOptions:"dontDisplay"}
+                    }], {});
+                } catch(e) { console.log("move BG:", e.message); }
+
+                // Set foreground color and fill
+                try {
+                    await action.batchPlay([{
+                        _obj:"set",
+                        _target:[{_ref:"color",_property:"foregroundColor"}],
+                        to:{_obj:"RGBColor",red:shirtColor.r,grain:shirtColor.g,blue:shirtColor.b},
+                        source:"photoshopPicker",
+                        _options:{dialogOptions:"dontDisplay"}
+                    }], {});
+                    await action.batchPlay([{
+                        _obj:"fill",
+                        using:{_enum:"fillContents",_value:"foregroundColor"},
+                        opacity:{_unit:"percentUnit",_value:100},
+                        mode:{_enum:"blendMode",_value:"normal"},
+                        _options:{dialogOptions:"dontDisplay"}
+                    }], {});
+                } catch(e) { console.log("fill BG:", e.message); }
+
+                // Re-select working layer
+                try {
+                    await action.batchPlay([{
+                        _obj:"select",
+                        _target:[{_ref:"layer",_id:workingLayer.id}],
+                        makeVisible: false,
+                        _options:{dialogOptions:"dontDisplay"}
+                    }], {});
+                } catch(e) {}
             } else if (mode === "alpha") {
-                console.log("preview: alpha (transparent BG)");
-                // Default state - mask enabled, no BG
+                console.log("preview: alpha (transparent)");
+                // Default state - mask is enabled, no BG, transparent shows through
             } else if (mode === "mask") {
                 console.log("preview: mask channel");
-                await action.batchPlay([{
-                    _obj:"select",
-                    _target:[{_ref:"channel",_enum:"channel",_value:"mask"}],
-                    makeVisible: true,
-                    _options:{dialogOptions:"dontDisplay"}
-                }], {});
+                try {
+                    await action.batchPlay([{
+                        _obj:"select",
+                        _target:[{_ref:"channel",_enum:"channel",_value:"mask"}],
+                        makeVisible: true,
+                        _options:{dialogOptions:"dontDisplay"}
+                    }], {});
+                } catch(e) { console.log("select mask channel:", e.message); }
             }
         }, {commandName:"Preview Mode"});
     } catch(e) { console.error("Preview mode error:", e.message); }
@@ -332,11 +381,30 @@ async function updateLevels() {
 
 async function applyDTPrep() {
     console.log("=== APPLY ===");
+    // Just clean up any preview-only artifacts (DTF_ShirtBG layer); keep the halftone result
     try {
         await core.executeAsModal(async () => {
-            await cleanupPreviewArtifacts();
-        }, {commandName:"Apply Cleanup"});
-    } catch(e) { console.error("Apply cleanup err:", e.message); }
+            const shirtBg = findLayerByName("DTF_ShirtBG");
+            if (shirtBg) {
+                try { await shirtBg.delete(); } catch(e) {}
+            }
+            // Re-enable mask in case Original mode was active
+            const workingLayer = findLayerByName("DTF_Working");
+            if (workingLayer) {
+                try {
+                    await action.batchPlay([{
+                        _obj:"set",
+                        _target:[
+                            {_ref:"property",_property:"userMaskEnabled"},
+                            {_ref:"layer",_id:workingLayer.id}
+                        ],
+                        to: true,
+                        _options:{dialogOptions:"dontDisplay"}
+                    }], {});
+                } catch(e) {}
+            }
+        }, {commandName:"Apply"});
+    } catch(e) { console.error("Apply err:", e.message); }
     document.getElementById("view-adjust").style.display = "none";
     document.getElementById("view-main").style.display = "block";
     refreshCanvasInfo();
