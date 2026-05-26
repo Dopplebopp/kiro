@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="styles.css">
+    <script src="index.js"></script>
+</head>
+<body>
+    <div id="panel">
+        <h1>Image Info</h1>
+
+        <div id="status" class="status">No document open</div>
+
+        <div class="field">
+            <label for="dpi">Resolution (DPI)</label>
+            <input type="number" id="dpi" min="1" max="2400" step="1" disabled>
+        </div>
+
+        <div class="row">
+            <div class="field">
+                <label for="width">Width</label>
+                <input type="number" id="width" min="0.01" step="0.01" disabled>
+            </div>
+            <div class="field">
+                <label for="height">Height</label>
+                <input type="number" id="height" min="0.01" step="0.01" disabled>
+            </div>
+            <div class="field">
+                <label for="units">Units</label>
+                <select id="units" disabled>
+                    <option value="in" selected>in</option>
+                    <option value="cm">cm</option>
+                    <option value="mm">mm</option>
+                    <option value="px">px</option>
+                </select>
+            </div>
+        </div>
+
+        <label class="checkbox">
+            <input type="checkbox" id="resample">
+            <span>Resample (change pixel dimensions)</span>
+        </label>
+
+        <p class="hint" id="hint">When unchecked, changing DPI keeps pixels and rescales print size. When checked, dimensions add/remove pixels.</p>
+
+        <div class="pixel-info" id="pixel-info"></div>
+
+        <button id="refresh" class="btn">Refresh</button>
+    </div>
+</body>
+</html>
