@@ -1,0 +1,24 @@
+{
+    "id": "com.imageinfo.pro",
+    "name": "Image Info Pro",
+    "version": "1.0.0",
+    "main": "index.html",
+    "manifestVersion": 4,
+    "host": [
+        {
+            "app": "PS",
+            "minVersion": "23.0.0"
+        }
+    ],
+    "entrypoints": [
+        {
+            "type": "panel",
+            "id": "imageInfoPanel",
+            "minimumSize": { "width": 230, "height": 240 },
+            "maximumSize": { "width": 2000, "height": 2000 },
+            "preferredDockedSize": { "width": 320, "height": 360 },
+            "preferredFloatingSize": { "width": 320, "height": 360 },
+            "label": { "default": "Image Info Pro" }
+        }
+    ]
+}
